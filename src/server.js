@@ -19,7 +19,7 @@ const setupServer = () => {
   app.use(cors());
 
 
-  app.use('/', contactsRouter);
+  app.use('/contacts', contactsRouter);
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
