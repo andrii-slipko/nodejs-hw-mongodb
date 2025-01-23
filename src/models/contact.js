@@ -10,10 +10,8 @@ const contactSchema = new mongoose.Schema(
       type: String,
       enum: ['work', 'home', 'personal'],
       default: 'personal',
-      required: true,
     },
   },
-  { timestamps: true }
 );
 
 const Contact = mongoose.model('Contact', contactSchema);

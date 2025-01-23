@@ -5,7 +5,7 @@ import contactsRouter from './routes/contacts.js';
 
 const setupServer = () => {
   const app = express();
-
+  app.use(express.json());
   const PORT = process.env.PORT || 3000;
 
   app.use(
