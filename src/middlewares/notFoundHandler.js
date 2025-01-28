@@ -1,5 +1,7 @@
-const createError = require('http-errors');
+import createHttpError from 'http-errors';
 
-module.exports = (req, res, next) => {
-    next(createError(404, "Route not found"));
-};
+const notFoundHandler = (req, res, next) => {
+    next(createHttpError(404, 'Route not found'));
+  }; 
+  
+  export { notFoundHandler };
