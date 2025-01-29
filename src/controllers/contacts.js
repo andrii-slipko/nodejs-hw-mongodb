@@ -45,11 +45,7 @@ const updateContact = async (req, res) => {
 const deleteContact = async (req, res) => {
   const contact = await deleteContactService(req.params.contactId);
   if (!contact) throw createHttpError(404, 'Contact not found');
-  res.status(200).json({
-    status: 200,
-    message: 'Successfully deleted contact!',
-    data: null,
-  });
+  res.status(204).send(); 
 };
 
 
