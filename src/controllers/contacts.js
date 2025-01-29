@@ -3,11 +3,36 @@ import {addContactService, updateContactService, deleteContactService} from '../
 import createHttpError from 'http-errors';
 
 const getAllContacts = async (req, res) => {
-  const contacts = await Contact.find();
+  const { page = 1, perPage = 10, sortBy = 'name', sortOrder = 'asc', type, isFavourite } = req.query;
+  const limit = Math.max(1, parseInt(perPage, 10)); 
+  const skip = (Math.max(1, parseInt(page, 10)) - 1) * limit;
+  const sortDirection = sortOrder === 'desc' ? -1 : 1;
+  const filter = {};
+  if (type) {
+    filter.contactType = type;
+  }
+  if (isFavourite !== undefined) {
+    filter.isFavourite = isFavourite === 'true';
+  }
+  const totalItems = await Contact.countDocuments(filter);
+  const totalPages = Math.ceil(totalItems / limit);
+  const contacts = await Contact.find(filter)
+    .sort({ [sortBy]: sortDirection })
+    .skip(skip)
+    .limit(limit);
+
   res.status(200).json({
     status: 200,
     message: 'Successfully found contacts!',
-    data: contacts,
+    data: {
+      data: contacts,
+      page: parseInt(page, 10),
+      perPage: limit,
+      totalItems,
+      totalPages,
+      hasPreviousPage: page > 1,
+      hasNextPage: page < totalPages,
+    },
   });
 };
 
