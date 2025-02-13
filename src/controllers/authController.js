@@ -26,7 +26,6 @@ export const registerUser = ctrlWrapper(async (req, res, next) => {
 
     return res.status(201).json({
       status: res.statusCode,
-      message: "User registered successfully!",
       data: {
         _id: newUser._id,
         name: newUser.name,
@@ -68,7 +67,6 @@ export const loginUser = ctrlWrapper(async (req, res, next) => {
 
     return res.status(200).json({
       status: res.statusCode,
-      message: "Successfully logged in a user!",
       data: { accessToken, refreshToken },
     });
 });
