@@ -1,21 +1,26 @@
 import Contact from '../models/contact.js';
-import {addContactService, updateContactService, deleteContactService} from '../services/contacts.js'
 import createHttpError from 'http-errors';
+import ctrlWrapper from "../utils/ctrlWrapper.js";
+import dotenv from "dotenv";
 
-const getAllContacts = async (req, res) => {
-  const { page = 1, perPage = 10, sortBy = 'name', sortOrder = 'asc', type, isFavourite } = req.query;
-  const limit = Math.max(1, parseInt(perPage, 10)); 
+dotenv.config();
+
+const getAllContacts = ctrlWrapper(async (req, res) => {
+  const { page = 1, perPage = 10, sortBy = "name", sortOrder = "asc", type, isFavourite } = req.query;
+  const limit = Math.max(1, parseInt(perPage, 10));
   const skip = (Math.max(1, parseInt(page, 10)) - 1) * limit;
-  const sortDirection = sortOrder === 'desc' ? -1 : 1;
-  const filter = {};
-  if (type) {
-    filter.contactType = type;
-  }
-  if (isFavourite !== undefined) {
-    filter.isFavourite = isFavourite === 'true';
-  }
+  const sortDirection = sortOrder === "desc" ? -1 : 1;
+
+  console.log("User ID from token:", req.user.userId); 
+  const filter = { userId: req.user.userId };
+  console.log("Filter used:", filter); 
+
+  if (type) filter.contactType = type;
+  if (isFavourite !== undefined) filter.isFavourite = isFavourite === "true";
+
   const totalItems = await Contact.countDocuments(filter);
   const totalPages = Math.ceil(totalItems / limit);
+
   const contacts = await Contact.find(filter)
     .sort({ [sortBy]: sortDirection })
     .skip(skip)
@@ -23,9 +28,9 @@ const getAllContacts = async (req, res) => {
 
   res.status(200).json({
     status: 200,
-    message: 'Successfully found contacts!',
+    message: "Successfully found contacts!",
     data: {
-      data: contacts,
+      contacts,
       page: parseInt(page, 10),
       perPage: limit,
       totalItems,
@@ -34,44 +39,47 @@ const getAllContacts = async (req, res) => {
       hasNextPage: page < totalPages,
     },
   });
-};
+});
 
-const getContactById = async (req, res) => {
+const getContactById = ctrlWrapper(async (req, res) => {
   const { contactId } = req.params;
-  const contact = await Contact.findById(contactId);
+  const contact = await Contact.findOne({ _id: contactId, userId: req.user.userId });
   if (!contact) throw createHttpError(404, 'Contact not found');
+  
   res.status(200).json({
     status: 200,
     message: `Successfully found contact with id ${contactId}!`,
     data: contact,
   });
-};
+});
 
+const addContact = ctrlWrapper(async (req, res) => {
+  console.log("Creating contact for user:", req.user.userId);
+  const newContact = await Contact.create({ ...req.body, userId: req.user.userId });
+  res.status(201).json({ status: 201, message: "Successfully added a contact!", data: newContact });
+});
 
-const addContact = async (req, res) => {
-    const newContact = await addContactService(req.body);
-    res.status(201).json({
-        status: 201,
-        message: "Successfully created a contact!",
-        data: newContact,
-    });
-};
-
-const updateContact = async (req, res) => {
-  const updatedContact = await updateContactService(req.params.contactId, req.body);
+const updateContact = ctrlWrapper(async (req, res) => {
+  const { contactId } = req.params;
+  const updatedContact = await Contact.findOneAndUpdate(
+    { _id: contactId, userId: req.user.userId },
+    req.body,
+    { new: true }
+  );
   if (!updatedContact) throw createHttpError(404, 'Contact not found');
+
   res.status(200).json({
     status: 200,
-    message: 'Successfully updated contact!',
+    message: "Successfully updated contact!",
     data: updatedContact,
   });
-};
+});
 
-const deleteContact = async (req, res) => {
-  const contact = await deleteContactService(req.params.contactId);
+const deleteContact = ctrlWrapper(async (req, res) => {
+  const { contactId } = req.params;
+  const contact = await Contact.findOneAndDelete({ _id: contactId, userId: req.user.userId });
   if (!contact) throw createHttpError(404, 'Contact not found');
-  res.status(204).send(); 
-};
-
+  res.status(204).send();
+});
 
 export { getAllContacts, getContactById, addContact, updateContact, deleteContact };

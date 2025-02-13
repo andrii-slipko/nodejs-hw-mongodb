@@ -5,13 +5,13 @@ import { User } from "../models/userModel.js";
 import { Session } from "../models/sessionModel.js";
 import { registerSchema, loginSchema } from "../models/authSchemas.js";
 import dotenv from "dotenv";
+import ctrlWrapper from "../utils/ctrlWrapper.js";
 dotenv.config();
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
-export const registerUser = async (req, res, next) => {
-  try {
+export const registerUser = ctrlWrapper(async (req, res, next) => {
     const { error } = registerSchema.validate(req.body);
     if (error) throw createHttpError(400, error.details[0].message);
 
@@ -25,7 +25,7 @@ export const registerUser = async (req, res, next) => {
     const newUser = await User.create({ name, email, password: hashedPassword });
 
     return res.status(201).json({
-      status: "success",
+      status: res.statusCode,
       message: "User registered successfully!",
       data: {
         _id: newUser._id,
@@ -33,14 +33,9 @@ export const registerUser = async (req, res, next) => {
         email: newUser.email,
       },
     });
-  } catch (err) {
-    next(err);
-  }
-};
+});
 
-
-export const loginUser = async (req, res, next) => {
-  try {
+export const loginUser = ctrlWrapper(async (req, res, next) => {
     const { error } = loginSchema.validate(req.body);
     if (error) throw createHttpError(400, error.details[0].message);
 
@@ -72,17 +67,13 @@ export const loginUser = async (req, res, next) => {
     });
 
     return res.status(200).json({
-      status: "success",
+      status: res.statusCode,
       message: "Successfully logged in a user!",
-      data: { accessToken },
+      data: { accessToken, refreshToken },
     });
-  } catch (err) {
-    next(err);
-  }
-};
+});
 
-export const refreshToken = async (req, res, next) => {
-  try {
+export const refreshToken = ctrlWrapper(async (req, res, next) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken) throw createHttpError(401, "Unauthorized");
 
@@ -98,23 +89,16 @@ export const refreshToken = async (req, res, next) => {
     await session.save();
 
     return res.status(200).json({
-      status: "success",
+      status: res.statusCode,
       data: { accessToken: newAccessToken },
     });
-  } catch (err) {
-    next(err);
-  }
-};
+});
 
-export const logoutUser = async (req, res, next) => {
-  try {
+export const logoutUser = ctrlWrapper(async (req, res, next) => {
     const { refreshToken } = req.cookies;
     if (refreshToken) {
       await Session.deleteOne({ refreshToken });
       res.clearCookie("refreshToken");
     }
-    return res.status(200).json({ message: "Logged out successfully!" });
-  } catch (err) {
-    next(err);
-  }
-};
+    return res.status(204).send();
+});
