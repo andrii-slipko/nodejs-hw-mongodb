@@ -54,19 +54,32 @@ const getContactById = ctrlWrapper(async (req, res) => {
 });
 
 const addContact = ctrlWrapper(async (req, res) => {
-  console.log("Creating contact for user:", req.user.userId);
-  const newContact = await Contact.create({ ...req.body, userId: req.user.userId });
-  res.status(201).json({ status: 201, message: "Successfully added a contact!", data: newContact });
+  console.log("Received data:", req.body);
+  console.log("Received file:", req.file);
+
+  const newContact = await Contact.create({
+    ...req.body,
+    userId: req.user.userId,
+    photo: req.file?.path || undefined,  
+  });
+
+  res.status(201).json({
+    status: 201,
+    message: "Successfully added a contact!",
+    data: newContact,
+  });
 });
 
 const updateContact = ctrlWrapper(async (req, res) => {
   const { contactId } = req.params;
+
   const updatedContact = await Contact.findOneAndUpdate(
     { _id: contactId, userId: req.user.userId },
-    req.body,
+    { ...req.body, ...(req.file?.path && { photo: req.file.path }) }, 
     { new: true }
   );
-  if (!updatedContact) throw createHttpError(404, 'Contact not found');
+
+  if (!updatedContact) throw createHttpError(404, "Contact not found");
 
   res.status(200).json({
     status: 200,

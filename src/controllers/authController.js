@@ -3,9 +3,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
 import { Session } from "../models/sessionModel.js";
-import { registerSchema, loginSchema } from "../models/authSchemas.js";
+import { emailSchema, registerSchema, loginSchema, resetPasswordSchema } from "../models/authSchemas.js";
 import dotenv from "dotenv";
 import ctrlWrapper from "../utils/ctrlWrapper.js";
+import nodemailer from "nodemailer";
 dotenv.config();
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
@@ -99,4 +100,82 @@ export const logoutUser = ctrlWrapper(async (req, res, next) => {
       res.clearCookie("refreshToken");
     }
     return res.status(204).send();
+});
+
+const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, JWT_SECRET, APP_DOMAIN } = process.env;
+
+const transporter = nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: Number(SMTP_PORT),
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASSWORD,
+  },
+});
+
+export const sendResetEmail = ctrlWrapper(async (req, res, next) => {
+  
+  const { error } = emailSchema.validate(req.body);
+  if (error) throw createHttpError(400, error.details[0].message);
+
+  const { email } = req.body;
+
+  
+  const user = await User.findOne({ email });
+  if (!user) throw createHttpError(404, "User not found!");
+
+  
+  const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "5m" });
+
+  
+  const resetLink = `${APP_DOMAIN}/reset-password?token=${token}`;
+
+  
+  const mailOptions = {
+    from: SMTP_FROM,
+    to: email,
+    subject: "Password Reset Request",
+    html: `<p>Click <a href="${resetLink}">here</a> to reset your password. This link will expire in 5 minutes.</p>`,
+  };
+
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({
+      status: 200,
+      message: "Reset password email has been successfully sent.",
+      data: {},
+    });
+  } catch (error) {
+    throw createHttpError(500, "Failed to send the email, please try again later.");
+  }
+});
+
+export const resetPassword = ctrlWrapper(async (req, res, next) => {
+  const { error } = resetPasswordSchema.validate(req.body);
+  if (error) throw createHttpError(400, error.details[0].message);
+
+  const { token, newPassword } = req.body;
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    throw createHttpError(400, "Invalid or expired token");
+  }
+
+  const { email } = decoded;
+
+  const user = await User.findOne({ email });
+  if (!user) throw createHttpError(404, "User not found!");
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  user.password = hashedPassword;
+  await user.save();
+
+  return res.status(200).json({
+    status: 200,
+    message: "Password has been successfully reset.",
+  });
 });
