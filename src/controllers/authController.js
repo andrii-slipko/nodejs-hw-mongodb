@@ -7,6 +7,8 @@ import { emailSchema, registerSchema, loginSchema, resetPasswordSchema } from ".
 import dotenv from "dotenv";
 import ctrlWrapper from "../utils/ctrlWrapper.js";
 import nodemailer from "nodemailer";
+import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
 dotenv.config();
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
@@ -36,41 +38,51 @@ export const registerUser = ctrlWrapper(async (req, res, next) => {
 });
 
 export const loginUser = ctrlWrapper(async (req, res, next) => {
-    const { error } = loginSchema.validate(req.body);
-    if (error) throw createHttpError(400, error.details[0].message);
+  const { error } = loginSchema.validate(req.body);
+  if (error) throw createHttpError(400, error.details[0].message);
 
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) throw createHttpError(401, "Invalid email or password");
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) throw createHttpError(401, "Invalid email or password");
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) throw createHttpError(401, "Invalid email or password");
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) throw createHttpError(401, "Invalid email or password");
 
-    const accessToken = jwt.sign({ userId: user._id }, JWT_ACCESS_SECRET, { expiresIn: "15m" });
-    const refreshToken = jwt.sign({ userId: user._id }, JWT_REFRESH_SECRET, { expiresIn: "30d" });
+  const sessionId = uuidv4();
+  const accessToken = jwt.sign({ userId: user._id }, JWT_ACCESS_SECRET, { expiresIn: "15m" });
+  const refreshToken = jwt.sign({ userId: user._id, sessionId }, JWT_REFRESH_SECRET, { expiresIn: "30d" });
 
-    await Session.deleteMany({ userId: user._id });
+  await Session.deleteMany({ userId: user._id });
 
-    await Session.create({
-      userId: user._id,
-      accessToken,
-      refreshToken,
-      accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
-      refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    });
+  await Session.create({
+    userId: user._id,
+    sessionId,
+    refreshToken,
+    refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
+  });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+ 
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
 
-    return res.status(200).json({
-      status: res.statusCode,
-      data: { accessToken, refreshToken },
-    });
+  res.cookie("sessionId", sessionId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
+
+  return res.status(200).json({
+    status: 200,
+    message: "Login successful",
+    data: { accessToken }, 
+  });
 });
+
 
 export const refreshToken = ctrlWrapper(async (req, res, next) => {
     const { refreshToken } = req.cookies;
@@ -114,30 +126,29 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendResetEmail = ctrlWrapper(async (req, res, next) => {
-  
   const { error } = emailSchema.validate(req.body);
   if (error) throw createHttpError(400, error.details[0].message);
 
   const { email } = req.body;
-
-  
   const user = await User.findOne({ email });
   if (!user) throw createHttpError(404, "User not found!");
 
-  
-  const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "5m" });
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  const expiresAt = Date.now() + 5 * 60 * 1000; 
 
-  
-  const resetLink = `${APP_DOMAIN}/reset-password?token=${token}`;
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = expiresAt;
+  await user.save();
 
-  
+  const resetLink = `${APP_DOMAIN}/auth/reset-pwd?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
   const mailOptions = {
     from: SMTP_FROM,
     to: email,
     subject: "Password Reset Request",
     html: `<p>Click <a href="${resetLink}">here</a> to reset your password. This link will expire in 5 minutes.</p>`,
   };
-
 
   try {
     await transporter.sendMail(mailOptions);
@@ -151,31 +162,28 @@ export const sendResetEmail = ctrlWrapper(async (req, res, next) => {
   }
 });
 
-export const resetPassword = ctrlWrapper(async (req, res, next) => {
-  const { error } = resetPasswordSchema.validate(req.body);
-  if (error) throw createHttpError(400, error.details[0].message);
+export const resetPassword = async (req, res) => {
+  const { password, token } = req.body;
 
-  const { token, newPassword } = req.body;
+  if (!password || !token) {
+    throw createHttpError(400, "Password and token are required");
+  }
 
   let decoded;
   try {
-    decoded = jwt.verify(token, JWT_SECRET);
-  } catch (err) {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
     throw createHttpError(400, "Invalid or expired token");
   }
 
-  const { email } = decoded;
+  const user = await User.findOne({ email: decoded.email });
+  if (!user || user.resetToken !== token) {
+    throw createHttpError(400, "Invalid or expired token");
+  }
 
-  const user = await User.findOne({ email });
-  if (!user) throw createHttpError(404, "User not found!");
-
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-  user.password = hashedPassword;
+  user.password = await bcrypt.hash(password, 10);
+  user.resetToken = null;
   await user.save();
 
-  return res.status(200).json({
-    status: 200,
-    message: "Password has been successfully reset.",
-  });
-});
+  res.status(200).json({ status: 200, message: "Password successfully reset" });
+};
