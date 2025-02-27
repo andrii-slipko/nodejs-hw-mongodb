@@ -1,0 +1,27 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Contacts API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  description: API for contacts
+tags:
+  - name: Contacts
+    description: Операції з контактами
+servers:
+  - url: http://localhost:3000
+  - url: https://nodejs-hw-mongodb-2-ztsf.onrender.com
+paths:
+  /contacts:
+    get:
+      $ref: "./swagger/paths/contacts/get.yaml"
+  /contacts/{contactId}:
+    get:
+      $ref: "./swagger/paths/contacts/{contactId}/get.yaml"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+

@@ -57,10 +57,12 @@ const addContact = ctrlWrapper(async (req, res) => {
   console.log("Received data:", req.body);
   console.log("Received file:", req.file);
 
+  const { _id: userId } = req.user; 
+
   const newContact = await Contact.create({
     ...req.body,
-    userId: req.user.userId,
-    photo: req.file?.path || undefined,  
+    userId, 
+    photo: req.file?.path || null, 
   });
 
   res.status(201).json({
