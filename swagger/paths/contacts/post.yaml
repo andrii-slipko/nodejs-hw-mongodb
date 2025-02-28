@@ -1,0 +1,25 @@
+
+  tags:
+    - Contacts
+  summary: Add new contact
+  operationId: createContact
+  description: Add new contact to a list of user`s contacts
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../components/schemas/Contact.yaml"
+  responses:
+    "201":
+      description: success
+      content:
+        application/json:
+          schema:
+            $ref: "../../components/schemas/Contact.yaml"
+    "400":
+      description: Uncorrect data
+    "401":
+      description: Unauthorized user

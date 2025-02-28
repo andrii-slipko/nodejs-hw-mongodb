@@ -1,0 +1,44 @@
+
+  tags:
+    - Contacts
+  summary: Update contact
+  operationId: updateContact
+  description: Update contact data by ID
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: contactId
+      in: path
+      required: true
+      description: contact ID for update
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "John Doe"
+            email:
+              type: string
+              example: "john@example.com"
+            phone:
+              type: string
+              example: "+380671234567"
+  responses:
+    "200":
+      description: success
+      content:
+        application/json:
+          schema:
+            $ref: "../../../components/schemas/Contact.yaml"
+    "400":
+      description: Uncorrect data
+    "401":
+      description: Unauthorized user
+    "404":
+      description: contact not found

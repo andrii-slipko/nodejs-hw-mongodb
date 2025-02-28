@@ -11,12 +11,13 @@ import contactsRouter from "./routes/contacts.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFoundHandler } from "./middlewares/notFoundHandler.js";
 import authRoutes from "./routes/authRoutes.js";
-
-
+import { swaggerDocs } from './middlewares/swaggerDocs.js';
+import path from "path"
+import { UPLOAD_DIR } from './constants/index.js';
 
 const setupServer = () => {
   const app = express();
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 3000;
 
   app.use(express.json());
   app.use(cookieParser());
@@ -33,9 +34,14 @@ const setupServer = () => {
   app.use("/auth", authRoutes);
   app.use("/contacts", contactsRouter);
 
+  app.use('/uploads', express.static(UPLOAD_DIR));
+  swaggerDocs(app);
+  
   app.use(notFoundHandler);
   app.use(errorHandler);
 
+
+  
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
