@@ -2,6 +2,9 @@ import Contact from '../models/contact.js';
 import createHttpError from 'http-errors';
 import ctrlWrapper from "../utils/ctrlWrapper.js";
 import dotenv from "dotenv";
+import {addContactService} from "../services/contacts.js"
+
+
 
 dotenv.config();
 
@@ -53,24 +56,32 @@ const getContactById = ctrlWrapper(async (req, res) => {
   });
 });
 
-const addContact = ctrlWrapper(async (req, res) => {
-  console.log("Received data:", req.body);
-  console.log("Received file:", req.file);
+const addContact = async (req, res, next) => {
+  try {
+    const { photo } = req.file
+      ? { photo: await saveFileToCloudinary(req.file) }
+      : {};
 
-  const { _id: userId } = req.user; 
+    const contactData = {
+      ...req.body,
+      userId: req.user.userId,  
+      photo,
+    };
 
-  const newContact = await Contact.create({
-    ...req.body,
-    userId, 
-    photo: req.file?.path || null, 
-  });
+    const contact = await addContactService(contactData);
 
-  res.status(201).json({
-    status: 201,
-    message: "Successfully added a contact!",
-    data: newContact,
-  });
-});
+    res.status(201).json({
+      status: 201,
+      message: 'Successfully created a contact!',
+      data: contact,
+    });
+  } catch (error) {
+    next(error);  
+  }
+};
+
+
+
 
 const updateContact = ctrlWrapper(async (req, res) => {
   const { contactId } = req.params;

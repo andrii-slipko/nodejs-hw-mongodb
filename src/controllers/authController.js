@@ -61,7 +61,7 @@ export const loginUser = ctrlWrapper(async (req, res, next) => {
     refreshToken,
     accessToken,
     refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000), // Додаємо час життя accessToken
+    accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000), 
   });
 
   res.cookie("refreshToken", refreshToken, {

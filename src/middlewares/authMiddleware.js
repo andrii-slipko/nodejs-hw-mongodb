@@ -4,30 +4,19 @@ import {Session} from "../models/sessionModel.js";
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 
-export const authenticateUser = async (req, res, next) => {
+
+export const authenticateUser = (req, res, next) => {
+  const { authorization } = req.headers;
+  if (!authorization) {
+    throw createHttpError(401, "Authorization header is missing");
+  }
+
+  const token = authorization.replace("Bearer ", "");
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw createHttpError(401, "Unauthorized: Токен не надано");
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, JWT_ACCESS_SECRET);
-
-    const session = await Session.findOne({ userId: decoded.userId, accessToken: token });
-    if (!session) {
-      throw createHttpError(401, "Unauthorized: Активну сесію не знайдено");
-    }
-
-    req.user = decoded;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); 
+    req.user = { userId: decoded.userId }; 
     next();
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
-      next(createHttpError(401, "Unauthorized: Токен протерміновано"));
-    } else if (err.name === "JsonWebTokenError") {
-      next(createHttpError(401, "Unauthorized: Невірний токен"));
-    } else {
-      next(createHttpError(401, "Unauthorized"));
-    }
+  } catch (error) {
+    throw createHttpError(401, "Unauthorized");
   }
 };
