@@ -56,6 +56,7 @@ const getContactById = ctrlWrapper(async (req, res) => {
   });
 });
 
+
 const addContact = async (req, res, next) => {
   try {
     const { photo } = req.file
