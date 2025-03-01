@@ -11,7 +11,7 @@ tags:
     description: Operations with contacts
 servers:
   - url: http://localhost:3000
-  - url: https://nodejs-hw-7-ip1h.onrender.com
+  - url: https://hw-7-abd3.onrender.com
 paths:
   /contacts:
     get:
