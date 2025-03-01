@@ -59,14 +59,12 @@ const getContactById = ctrlWrapper(async (req, res) => {
 
 const addContact = async (req, res, next) => {
   try {
-    const { photo } = req.file
-      ? { photo: await saveFileToCloudinary(req.file) }
-      : {};
+  
 
     const contactData = {
       ...req.body,
       userId: req.user.userId,  
-      photo,
+      photo: req.file?.path || undefined,
     };
 
     const contact = await addContactService(contactData);
