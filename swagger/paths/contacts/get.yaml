@@ -14,20 +14,41 @@
       schema:
         type: integer
         example: 1
-    - name: limit
+    - name: perPage
       in: query
       required: false
       description: Contacts per page
       schema:
         type: integer
         example: 10
-    - name: favorite
+    - name: totalItems
       in: query
       required: false
-      description: Filter favorite/not favorite contact
+      description: Number of total contacts
+      schema:
+        type: integer
+        example: 7 
+    - name: totalPages
+      in: query
+      required: false
+      description: Number of total pages
+      schema:
+        type: integer
+        example: 2
+    - name: hasPreviousPage
+      in: query
+      required: false
+      description: existence of previous page
       schema:
         type: boolean
         example: true
+    - name: hasNextPage
+      in: query
+      required: false
+      description: existence of next page
+      schema:
+        type: boolean
+        example: false
   responses:
     "200":
       description: success
@@ -38,4 +59,4 @@
             items:
               $ref: "../../components/schemas/Contact.yaml"
     "401":
-      description: Unauthorized user
+      $ref: ../../components/responses/401.yaml

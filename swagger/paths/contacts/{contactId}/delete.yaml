@@ -15,17 +15,17 @@
         type: string
         example: "65c2e863f3a512b8a789b8d3"
   responses:
-    "200":
+    "204":
       description: Success
       content:
         application/json:
           schema:
-            type: object
+            type: string
             properties:
-              message:
-                type: string
-                example: "Contact deleted"
+              status: 
+                type: integer
+                example: 204
     "401":
-      description: Unauthorized user
+      $ref: ../../../components/responses/401.yaml
     "404":
-      description: Contact not found
+      $ref: ../../../components/responses/404.yaml

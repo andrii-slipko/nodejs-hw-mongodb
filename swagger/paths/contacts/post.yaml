@@ -9,7 +9,7 @@
   requestBody:
     required: true
     content:
-      application/json:
+      multipart/formdata:
         schema:
           $ref: "../../components/schemas/Contact.yaml"
   responses:
@@ -18,8 +18,17 @@
       content:
         application/json:
           schema:
-            $ref: "../../components/schemas/Contact.yaml"
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 201
+              message:
+                type: string
+                example: Successfully created a contact!
+              data:
+                $ref: "../../components/schemas/Contact.yaml"
     "400":
-      description: Uncorrect data
+      $ref: ../../components/responses/400.yaml
     "401":
-      description: Unauthorized user
+      $ref: ../../components/responses/401.yaml

@@ -16,7 +16,7 @@
   requestBody:
     required: true
     content:
-      application/json:
+      multipart/formdata:
         schema:
           type: object
           properties:
@@ -26,19 +26,38 @@
             email:
               type: string
               example: "john@example.com"
-            phone:
+            phoneNumber:
               type: string
               example: "+380671234567"
+            contactType:
+              type: string
+              example: work
+            isFavorite: 
+              type: boolean
+              example: true
+            Photo:
+              type: string
+              example: https://res.cloudinary.com/qwerty/image/upload/1234.jpg
+            
   responses:
     "200":
       description: success
       content:
         application/json:
           schema:
-            $ref: "../../../components/schemas/Contact.yaml"
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: Successfully updated contact!
+              data:
+                $ref: "../../../components/schemas/Contact.yaml"
     "400":
-      description: Uncorrect data
+      $ref: ../../../components/responses/400.yaml
     "401":
-      description: Unauthorized user
+      $ref: ../../../components/responses/401.yaml
     "404":
-      description: contact not found
+      $ref: ../../../components/responses/404.yaml

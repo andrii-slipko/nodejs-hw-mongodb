@@ -1,8 +1,5 @@
 type: object
 properties:
-  _id:
-    type: string
-    example: "65c2e863f3a512b8a789b8d3"
   name:
     type: string
     example: "John Doe"
@@ -10,11 +7,20 @@ properties:
     type: string
     format: email
     example: "john@example.com"
-  phone:
+  phoneNumber:
     type: string
     example: "+380671234567"
+  contactType:
+    type: string
+    example: work
+  isFavorite: 
+    type: boolean
+    example: true
+  Photo:
+    type: string
+    example: https://res.cloudinary.com/qwerty/image/upload/1234.jpg
 required:
-  - _id
+
   - name
   - email
-  - phone
+  - phoneNumber
