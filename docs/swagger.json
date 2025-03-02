@@ -49,7 +49,7 @@
             }
           },
           {
-            "name": "limit",
+            "name": "perPage",
             "in": "query",
             "required": false,
             "description": "Contacts per page",
@@ -59,13 +59,43 @@
             }
           },
           {
-            "name": "favorite",
+            "name": "totalItems",
             "in": "query",
             "required": false,
-            "description": "Filter favorite/not favorite contact",
+            "description": "Number of total contacts",
+            "schema": {
+              "type": "integer",
+              "example": 7
+            }
+          },
+          {
+            "name": "totalPages",
+            "in": "query",
+            "required": false,
+            "description": "Number of total pages",
+            "schema": {
+              "type": "integer",
+              "example": 2
+            }
+          },
+          {
+            "name": "hasPreviousPage",
+            "in": "query",
+            "required": false,
+            "description": "existence of previous page",
             "schema": {
               "type": "boolean",
               "example": true
+            }
+          },
+          {
+            "name": "hasNextPage",
+            "in": "query",
+            "required": false,
+            "description": "existence of next page",
+            "schema": {
+              "type": "boolean",
+              "example": false
             }
           }
         ],
@@ -84,7 +114,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized user"
+            "$ref": "#/components/responses/401"
           }
         }
       },
@@ -103,7 +133,7 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/formdata": {
               "schema": {
                 "$ref": "#/components/schemas/Contact"
               }
@@ -116,16 +146,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Contact"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 201
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully created a contact!"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Contact"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Uncorrect data"
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized user"
+            "$ref": "#/components/responses/401"
           }
         }
       }
@@ -160,13 +203,29 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Contact"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully found contact with id 67c1ef559d2fd6cbeaa0ed6f!!"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Contact"
+                    }
+                  }
                 }
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
           "404": {
-            "description": "Contact not found"
+            "$ref": "#/components/responses/404"
           }
         }
       },
@@ -196,7 +255,7 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/formdata": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -208,9 +267,21 @@
                     "type": "string",
                     "example": "john@example.com"
                   },
-                  "phone": {
+                  "phoneNumber": {
                     "type": "string",
                     "example": "+380671234567"
+                  },
+                  "contactType": {
+                    "type": "string",
+                    "example": "work"
+                  },
+                  "isFavorite": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "Photo": {
+                    "type": "string",
+                    "example": "https://res.cloudinary.com/qwerty/image/upload/1234.jpg"
                   }
                 }
               }
@@ -223,19 +294,32 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Contact"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully updated contact!"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Contact"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Uncorrect data"
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized user"
+            "$ref": "#/components/responses/401"
           },
           "404": {
-            "description": "contact not found"
+            "$ref": "#/components/responses/404"
           }
         }
       },
@@ -264,16 +348,16 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
+                  "type": "string",
                   "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Contact deleted"
+                    "status": {
+                      "type": "integer",
+                      "example": 204
                     }
                   }
                 }
@@ -281,10 +365,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized user"
+            "$ref": "#/components/responses/401"
           },
           "404": {
-            "description": "Contact not found"
+            "$ref": "#/components/responses/404"
           }
         }
       }
@@ -301,10 +385,6 @@
       "Contact": {
         "type": "object",
         "properties": {
-          "_id": {
-            "type": "string",
-            "example": "65c2e863f3a512b8a789b8d3"
-          },
           "name": {
             "type": "string",
             "example": "John Doe"
@@ -314,17 +394,117 @@
             "format": "email",
             "example": "john@example.com"
           },
-          "phone": {
+          "phoneNumber": {
             "type": "string",
             "example": "+380671234567"
+          },
+          "contactType": {
+            "type": "string",
+            "example": "work"
+          },
+          "isFavorite": {
+            "type": "boolean",
+            "example": true
+          },
+          "Photo": {
+            "type": "string",
+            "example": "https://res.cloudinary.com/qwerty/image/upload/1234.jpg"
           }
         },
         "required": [
-          "_id",
           "name",
           "email",
-          "phone"
+          "phoneNumber"
         ]
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "Incorrect data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "integer",
+                  "example": 400
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Missing or incorrect data"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Bad request"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "integer",
+                  "example": 401
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Access token expired or incorrect"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Contact not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "integer",
+                  "example": 404
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Contact not found"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
