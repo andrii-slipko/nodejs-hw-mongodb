@@ -21,31 +21,31 @@
       schema:
         type: integer
         example: 10
-    - name: totalItems
+    - name: sortBy
       in: query
       required: false
-      description: Number of total contacts
+      description: Sort filter
       schema:
         type: integer
-        example: 7 
-    - name: totalPages
+        example: name 
+    - name: sortOrder
       in: query
       required: false
-      description: Number of total pages
+      description: Order of sorting
       schema:
         type: integer
-        example: 2
-    - name: hasPreviousPage
+        example: asc
+    - name: type
       in: query
       required: false
-      description: existence of previous page
+      description: filter by type
       schema:
-        type: boolean
-        example: true
-    - name: hasNextPage
+        type: integer
+        example: work
+    - name: isFavorite
       in: query
       required: false
-      description: existence of next page
+      description: filter favorite contact
       schema:
         type: boolean
         example: false
@@ -55,8 +55,17 @@
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: "../../components/schemas/Contact.yaml"
+           type: object
+           properties:
+              status:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: Successfully found contacts!
+              data:
+                 $ref: "../../components/schemas/Contact.yaml"
     "401":
       $ref: ../../components/responses/401.yaml
+    "404":
+      $ref: ../../components/responses/404.yaml

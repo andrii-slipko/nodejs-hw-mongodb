@@ -13,11 +13,18 @@ properties:
   contactType:
     type: string
     example: work
+  _id:
+    type: string
+    example: 67c4df1bbef969c92a2fc752
+  userId:
+    type: string
+    example: 67c1ef559d2fd6cbeaa0ed6f
   isFavorite: 
     type: boolean
     example: true
-  Photo:
+  photo:
     type: string
+    format: binary
     example: https://res.cloudinary.com/qwerty/image/upload/1234.jpg
 required:
 
