@@ -35,8 +35,9 @@
             isFavorite: 
               type: boolean
               example: true
-            Photo:
+            photo:
               type: string
+              format: binary
               example: https://res.cloudinary.com/qwerty/image/upload/1234.jpg
             
   responses:

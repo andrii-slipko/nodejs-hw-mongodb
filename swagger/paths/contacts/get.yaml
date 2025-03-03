@@ -64,7 +64,42 @@
                 type: string
                 example: Successfully found contacts!
               data:
-                 $ref: "../../components/schemas/Contact.yaml"
+                type: object
+                required:
+                - data
+                - page
+                - perPage
+                - totalItems
+                - totalPages
+                - hasNextPage
+                - hasPreviousPage
+                properties:
+                  data:
+                   type: array
+                   items:
+                    $ref: '../../components/schemas/Contact.yaml'
+                  page:
+                   type: number
+                   example: 2
+                  perPage:
+                    type: number
+                    example: 4
+                  totalItems:
+                    type: number
+                    example: 4
+                  totalPages:
+                    type: number
+                    example: 4
+                  hasPreviousPage:
+                    type: boolean
+                    example: true
+                  hasNextPage:
+                    type: boolean
+                    example: false
+                  
+              
+                        
+            
     "401":
       $ref: ../../components/responses/401.yaml
     "404":

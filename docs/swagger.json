@@ -116,7 +116,48 @@
                       "example": "Successfully found contacts!"
                     },
                     "data": {
-                      "$ref": "#/components/schemas/Contact"
+                      "type": "object",
+                      "required": [
+                        "data",
+                        "page",
+                        "perPage",
+                        "totalItems",
+                        "totalPages",
+                        "hasNextPage",
+                        "hasPreviousPage"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Contact"
+                          }
+                        },
+                        "page": {
+                          "type": "number",
+                          "example": 2
+                        },
+                        "perPage": {
+                          "type": "number",
+                          "example": 4
+                        },
+                        "totalItems": {
+                          "type": "number",
+                          "example": 4
+                        },
+                        "totalPages": {
+                          "type": "number",
+                          "example": 4
+                        },
+                        "hasPreviousPage": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "hasNextPage": {
+                          "type": "boolean",
+                          "example": false
+                        }
+                      }
                     }
                   }
                 }
@@ -148,7 +189,34 @@
           "content": {
             "multipart/formdata": {
               "schema": {
-                "$ref": "#/components/schemas/Contact"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "john@example.com"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "+380671234567"
+                  },
+                  "contactType": {
+                    "type": "string",
+                    "example": "work"
+                  },
+                  "isFavorite": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "photo": {
+                    "type": "string",
+                    "format": "binary",
+                    "example": "https://res.cloudinary.com/qwerty/image/upload/1234.jpg"
+                  }
+                }
               }
             }
           }
@@ -292,8 +360,9 @@
                     "type": "boolean",
                     "example": true
                   },
-                  "Photo": {
+                  "photo": {
                     "type": "string",
+                    "format": "binary",
                     "example": "https://res.cloudinary.com/qwerty/image/upload/1234.jpg"
                   }
                 }

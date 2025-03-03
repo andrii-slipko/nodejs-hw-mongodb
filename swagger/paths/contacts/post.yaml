@@ -11,7 +11,27 @@
     content:
       multipart/formdata:
         schema:
-          $ref: "../../components/schemas/Contact.yaml"
+          type: object
+          properties:
+            name:
+              type: string
+              example: "John Doe"
+            email:
+              type: string
+              example: "john@example.com"
+            phoneNumber:
+              type: string
+              example: "+380671234567"
+            contactType:
+              type: string
+              example: work
+            isFavorite: 
+              type: boolean
+              example: true
+            photo:
+              type: string
+              format: binary
+              example: https://res.cloudinary.com/qwerty/image/upload/1234.jpg
   responses:
     "201":
       description: success
